@@ -1,0 +1,20 @@
+#!/bin/sh
+
+F=`find /usr/src/ -type d -printf '%d\n' | sort -rn | head -1`
+
+echo" ----" >> ~/Documents/OS/OS-labs/lab1.5/dir_tst.txt
+
+echo $F
+
+for i in `seq 1 $F`;
+do
+	echo "This is level $i" >> ~/Documents/OS/OS-labs/lab1.5/dir_tst.txt
+	echo ".c source code files level" >> ~/Documents/OS/OS-labs/lab1.5/dir_tst.txt
+        find /usr/src/ -maxdepth $i -type f -name *[.c\] >> ~/Documents/OS/OS-labs/lab1.5/dir_tst.txt
+
+        echo ".h header files" >> ~/Documents/OS/OS-labs/lab1.5/dir_tst.txt
+	find /usr/src/ -maxdepth $i -type f -name *[.h\] >> ~/Documents/OS/OS-labs/lab1.5/dir_tst.txt
+	echo $i
+done
+
+exit 0
