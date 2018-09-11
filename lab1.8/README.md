@@ -23,3 +23,8 @@ I am thread 1. Created new thread (12) in iteration 7...
 Hello from thread 11 - I was created in iteration 6
 Hello from thread 12 - I was created in iteration 7
 
+Instructions:
+	For compiling this program
+		gcc helloToMany.c -o helloToMany -lpthread
+	For running the program
+		helloToMany
