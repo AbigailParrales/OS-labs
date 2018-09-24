@@ -4,9 +4,17 @@
 
 #define SIZE_LADO  3
 
-long **buffers; // An array of NUM_BUFFERS pointers to the available buffers that will serve as temporal rows to be stored into final result matrix.
-long NUM_BUFFERS = 5;      //Número de hilos ejecutándose de una vez
+long **buffers;             // An array of NUM_BUFFERS pointers to the available buffers that will serve as temporal rows to be stored into final result matrix.
+long NUM_BUFFERS = 5;       //Número de hilos ejecutándose de una vez
+pthread_mutex_t *mutexes;   // Mutexes that will help to know which buffer is available
+long * result;
+long *matB, *matA;
 
+
+typedef struct {
+    int row;
+    int column;
+} coordinates;
 
 void print_mat(long *mat,int x){
   int i;
@@ -70,12 +78,12 @@ Search for an available buffer, if so it returns the available lock id which is 
 */
 int getLock(){
   int i;
-  for(int i=0; i<NUM_BUFFERS; i++){
+  for(i=0; i<NUM_BUFFERS; i++){
     if(pthread_mutex_trylock(&mutexes[i])==0){
       return i;
     }
   }
-  else return -1;
+  return -1;
 }
 
 /*
@@ -105,10 +113,45 @@ long dotProduct(long *vec1, long *vec2){
   return sum;
 }
 
+
+void *mult(coordinates *parameters) 
+{
+    int status;
+    long * column;
+    long * row;
+    row = getRow(parameters->row, matA);
+    do {
+        status = getLock();
+    } while(status < 0);
+    
+
+}
+
+long *multiply(long *matA, long *matB){   
+    int i;
+    int j;
+    long * result;
+    pthread_t tid [SIZE_LADO];
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    coordinates args;
+    for (i = 0; i < SIZE_LADO; i++){
+        for (j = 0; j < SIZE_LADO; j++){
+            args.row = j;
+            args.column = i;
+            pthread_create(&tid[i],&attr,mult,(void *)&args);
+            printf("j= %d ::: %ld\n",i, result[j]);               //prints the long found in the line
+        }
+    }
+    return result;
+}
+
+
+
 /*
 Here's where all the magic happens. Explained in Matrix multiplication section
 */
-void multiply(long *matA, long *matB){
+/*void multiply(long *matA, long *matB){
 // long * multiply(long *matA, long *matB){
   int row,column,i;
   long* row_tmp;
@@ -128,6 +171,23 @@ void multiply(long *matA, long *matB){
 
 
   // return mult;
+}*/
+
+int saveResultMatrix(long *result)
+{
+    FILE *file;
+    file = fopen("result.data", "w");
+    int i;
+    if (file == NULL || file == NULL) 
+    {   
+        printf("Error! Could not open file\n"); 
+        return -1;
+    }
+    for (i = 0 ; i < SIZE_LADO ; i++)
+    {
+        fprintf(file, "%d\n", result[i]);
+    }
+    return 0;
 }
 
 int main(){
@@ -138,9 +198,27 @@ int main(){
     // print_mat(getRow(1,readMatrix("tst.dat")),SIZE_LADO);
     //print_mat(multiply(getRow(1,readMatrix("tst.dat")),getColumn(1,readMatrix("tst.dat"))),SIZE_LADO);
 
-    long* A = getRow(0,readMatrix("tst.dat"));
-    long* B = getColumn(0,readMatrix("tst.dat"));
+    // long* A = getRow(0,readMatrix("tst.dat"));
+    // long* B = getColumn(0,readMatrix("tst.dat"));
     // printf("%d\n",dotProduct(A,B));
 
-    multiply(readMatrix("tst.dat"),readMatrix("tst.dat"));
+    //multiply(readMatrix("tst.dat"),readMatrix("tst.dat"));
+
+
+    // int i;
+    // if(argc==2)
+    //     NUM_BUFFERS = (int)argv[1];
+
+    //NUM_BUFFERS = (int)argv[1];
+
+
+    buffers = malloc(NUM_BUFFERS*sizeof(long*)) ;
+    mutexes=malloc(NUM_BUFFERS*sizeof(pthread_mutex_t)); 
+    matA = readMatrix("tst.dat");
+    matB = readMatrix("tst.dat");
+    result = multiply(matA, matB);
+    // print_mat(result,SIZE_LADO);
+
+    if (saveResultMatrix(result)<0)
+        printf("file failed!");
 }
