@@ -39,10 +39,6 @@ long* readMatrix(char *filename){
 }
 
 
-void test_threads(){
-
-}
-
 /*
   Returns the specified array that represents a column in the matrix array.
 */
@@ -68,6 +64,32 @@ long * getRow(int row, long *matrix){
   }
   return row_t;
 }
+
+/*
+Search for an available buffer, if so it returns the available lock id which is the same buffer id, otherwise returns -1
+*/
+int getLock(){
+  int i;
+  for(int i=0; i<NUM_BUFFERS; i++){
+    if(pthread_mutex_trylock(&mutexes[i])==0){
+      return i;
+    }
+  }
+  else return -1;
+}
+
+/*
+Releases a buffer and unlock the mutex. Returns 0 for successful unlock, otherwise -1.
+*/
+int releaseLock(int lock){
+  if((pthread_mutex_unlock(&mutexes[lock]))==0){
+    return 0;
+  } 
+  else {
+    return -1;  
+  }
+}
+
 
 /*
 Given 2 arrays of 2000 lenght, it calculates the dot product and returns it as a long type value.
