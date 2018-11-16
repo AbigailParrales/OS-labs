@@ -83,6 +83,10 @@ int main()
             }
         }
 
+        else{
+            result=-99999;
+        }
+
         p.result=result;
 
         int i;

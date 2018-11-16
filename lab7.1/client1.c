@@ -65,7 +65,13 @@ int main(int argc, char **argv)
     read(sockfd, &p, sizeof(p));
     //read(sockfd, &ch, 1);
     //printf("Client: char from server = %c\n", ch);
-    printf("Client: Result: %d\n",p.result);
+
+    if(p.result==-99999){
+        printf("unsupported operation\n");
+    }
+    else{
+        printf("Client: Result: %d\n",p.result);
+    }
     close(sockfd);
     exit(0);
 }
